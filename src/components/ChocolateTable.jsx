@@ -1,12 +1,45 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-unused-vars */
-import React from "react";
+import React, { useState } from "react";
 import { FaEdit, FaEye, FaPlus, FaRegMinusSquare } from "react-icons/fa";
 import { Link, useLoaderData } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const ChocolateTable = () => {
-  const chocolate = useLoaderData();
-  console.log(chocolate);
+  const loadedchocolate = useLoaderData();
+  const [chocolate, setChocolate] = useState(loadedchocolate);
+
+  const handleChocolateDelete = (_id) => {
+    console.log(_id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:5000/chocolates/${_id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            if (data.deletedCount > 0) {
+              Swal.fire(
+                "Deleted!",
+                "Your chocolate has been deleted.",
+                "success"
+              );
+              const remaining = chocolate.filter((choco) => choco._id !== _id);
+              setChocolate(remaining);
+            }
+          });
+      }
+    });
+  };
 
   return (
     <div className="bg-[white] pt-8 text-center">
@@ -36,7 +69,7 @@ const ChocolateTable = () => {
               <th></th>
             </tr>
           </thead>
-          {chocolate.map((snicker) => (
+          {chocolate?.map((snicker) => (
             <tbody key={snicker._id}>
               <tr>
                 <td>
@@ -59,12 +92,17 @@ const ChocolateTable = () => {
 
                 <td>
                   <div className="flex gap-4">
-                    <div style={{ fontSize: "25px" }}>
-                      <FaEdit></FaEdit>
-                    </div>
-                    <div style={{ fontSize: "25px" }}>
+                    <Link to={`updateChocolate/${snicker._id}`}>
+                      <div style={{ fontSize: "25px" }}>
+                        <FaEdit></FaEdit>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={() => handleChocolateDelete(snicker._id)}
+                      style={{ fontSize: "25px" }}
+                    >
                       <FaRegMinusSquare></FaRegMinusSquare>
-                    </div>
+                    </button>
                   </div>
                 </td>
               </tr>
